@@ -9,11 +9,16 @@ import {
   Paper,
   TextField,
   Box,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  Typography,
 } from '@mui/material';
 import { TableVirtuoso } from 'react-virtuoso';
 import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
-
 
 const columns = [
   { label: 'ID', dataKey: 'id' },
@@ -28,20 +33,41 @@ const columns = [
 export default function DataTable() {
   const [search, setSearch] = useState('');
   const [rows, setRows] = useState([]);
+  const [openErrorDialog, setOpenErrorDialog] = useState(false);
+  const [errorMessages, setErrorMessages] = useState([]);
 
   useEffect(() => {
     async function fetchData() {
       try {
         const res = await fetch('https://login-estimate-time-edb70ab12340.herokuapp.com/');
         const json = await res.json();
-        if (json.status === 1 && Array.isArray(json.data)) {
+
+        console.log('API response:', json);
+
+        const status = json.status;
+
+        if (status === 1 && Array.isArray(json.data)) {
           setRows(json.data);
+          setErrorMessages([]);
+          setOpenErrorDialog(false);
         } else {
           setRows([]);
+
+          let errors = [];
+
+          if (json['error-no']) {
+            errors = [String(json['error-no'])];
+          } else {
+            errors = ['Bilinmeyen bir hata oluştu.'];
+          }
+
+          setErrorMessages(errors);
+          setOpenErrorDialog(true);
         }
       } catch (error) {
-        console.error('API error:', error);
         setRows([]);
+        setErrorMessages(['API isteği sırasında hata oluştu: ' + error.message]);
+        setOpenErrorDialog(true);
       }
     }
     fetchData();
@@ -92,10 +118,30 @@ export default function DataTable() {
     </TableRow>
   );
 
-const rowContent = (_index, row) => (
-  <>
-    {columns.map((column) => {
-      if (column.dataKey === 'dataSufficiency') {
+  const rowContent = (_index, row) => (
+    <>
+      {columns.map((column) => {
+        if (column.dataKey === 'dataSufficiency') {
+          return (
+            <TableCell
+              key={column.dataKey}
+              align="center"
+              sx={{
+                whiteSpace: 'normal',
+                wordBreak: 'keep-all',
+                overflowWrap: 'break-word',
+                padding: '8px',
+                minWidth: '100px',
+              }}
+            >
+              {row.dataSufficiency === 1 ? (
+                <CheckIcon sx={{ color: 'green' }} />
+              ) : (
+                <CloseIcon sx={{ color: 'red' }} />
+              )}
+            </TableCell>
+          );
+        }
         return (
           <TableCell
             key={column.dataKey}
@@ -108,32 +154,12 @@ const rowContent = (_index, row) => (
               minWidth: '100px',
             }}
           >
-            {row.dataSufficiency === 1 ? (
-              <CheckIcon sx={{ color: 'green' }} />
-            ) : (
-              <CloseIcon sx={{ color: 'red' }} />
-            )}
+            {row[column.dataKey]}
           </TableCell>
         );
-      }
-      return (
-        <TableCell
-          key={column.dataKey}
-          align="center"
-          sx={{
-            whiteSpace: 'normal',
-            wordBreak: 'keep-all',
-            overflowWrap: 'break-word',
-            padding: '8px',
-            minWidth: '100px',
-          }}
-        >
-          {row[column.dataKey]}
-        </TableCell>
-      );
-    })}
-  </>
-);
+      })}
+    </>
+  );
 
   return (
     <Box
@@ -169,6 +195,23 @@ const rowContent = (_index, row) => (
           style={{ height: '100%', width: '100%' }}
         />
       </Paper>
+
+      <Dialog open={openErrorDialog} onClose={() => setOpenErrorDialog(false)}>
+        <DialogTitle>Hata</DialogTitle>
+        <DialogContent dividers>
+          <Typography variant="subtitle2" color="textSecondary" gutterBottom>
+            Hata mesajları ({errorMessages.length})
+          </Typography>
+          {errorMessages.map((msg, idx) => (
+            <Typography key={idx} gutterBottom>
+              {msg}
+            </Typography>
+          ))}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenErrorDialog(false)}>Kapat</Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }
