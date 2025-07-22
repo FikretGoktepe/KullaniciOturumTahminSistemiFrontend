@@ -1,2 +1,2 @@
 # KullaniciOturumTahminSistemiFrontend
-React 
+React

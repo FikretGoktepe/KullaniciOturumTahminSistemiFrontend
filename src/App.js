@@ -11,14 +11,18 @@ import {
   Box,
 } from '@mui/material';
 import { TableVirtuoso } from 'react-virtuoso';
+import CheckIcon from '@mui/icons-material/Check';
+import CloseIcon from '@mui/icons-material/Close';
+
 
 const columns = [
-  { width: '20%', label: 'Name', dataKey: 'name' },
-  { width: '20%', label: 'Result 1', dataKey: 'result1' },
-  { width: '15%', label: 'Result 2', dataKey: 'result2' },
-  { width: '15%', label: 'Result 3', dataKey: 'result3' },
-  { width: '20%', label: 'Result 4', dataKey: 'result4' },
-  { width: '10%', label: 'Data Sufficiency', dataKey: 'dataSufficiency', numeric: true },
+  { label: 'ID', dataKey: 'id' },
+  { label: 'Name', dataKey: 'name' },
+  { label: 'Tahmini Aralık', dataKey: 'result1' },
+  { label: 'Tahmini Saat Dilimi', dataKey: 'result2' },
+  { label: 'Tahmini Gün', dataKey: 'result3' },
+  { label: 'Gelecek Tahmini Giriş', dataKey: 'result4' },
+  { label: 'Yeterli Veri Var?', dataKey: 'dataSufficiency' },
 ];
 
 export default function DataTable() {
@@ -53,14 +57,19 @@ export default function DataTable() {
 
   const VirtuosoTableComponents = {
     Scroller: React.forwardRef((props, ref) => (
-      <TableContainer component={Paper} {...props} ref={ref} />
+      <TableContainer
+        component={Paper}
+        ref={ref}
+        {...props}
+        sx={{ overflowX: 'auto', height: '100%' }}
+      />
     )),
     Table: (props) => (
-      <Table {...props} sx={{ borderCollapse: 'separate', tableLayout: 'fixed' }} />
+      <Table {...props} sx={{ borderCollapse: 'separate', tableLayout: 'auto' }} />
     ),
-    TableHead: React.forwardRef((props, ref) => <TableHead {...props} ref={ref} />),
+    TableHead: React.forwardRef((props, ref) => <TableHead ref={ref} {...props} />),
     TableRow,
-    TableBody: React.forwardRef((props, ref) => <TableBody {...props} ref={ref} />),
+    TableBody: React.forwardRef((props, ref) => <TableBody ref={ref} {...props} />),
   };
 
   const fixedHeaderContent = () => (
@@ -70,8 +79,12 @@ export default function DataTable() {
           key={column.dataKey}
           variant="head"
           align="center"
-          style={{ width: column.width, verticalAlign: 'middle' }}
-          sx={{ backgroundColor: 'background.paper' }}
+          sx={{
+            backgroundColor: 'background.paper',
+            whiteSpace: 'normal',
+            wordBreak: 'break-word',
+            padding: '8px',
+          }}
         >
           {column.label}
         </TableCell>
@@ -79,32 +92,62 @@ export default function DataTable() {
     </TableRow>
   );
 
-  const rowContent = (_index, row) => (
-    <>
-      {columns.map((column) => (
+const rowContent = (_index, row) => (
+  <>
+    {columns.map((column) => {
+      if (column.dataKey === 'dataSufficiency') {
+        return (
+          <TableCell
+            key={column.dataKey}
+            align="center"
+            sx={{
+              whiteSpace: 'normal',
+              wordBreak: 'keep-all',
+              overflowWrap: 'break-word',
+              padding: '8px',
+              minWidth: '100px',
+            }}
+          >
+            {row.dataSufficiency === 1 ? (
+              <CheckIcon sx={{ color: 'green' }} />
+            ) : (
+              <CloseIcon sx={{ color: 'red' }} />
+            )}
+          </TableCell>
+        );
+      }
+      return (
         <TableCell
           key={column.dataKey}
-          align={column.numeric ? 'right' : 'center'}
-          style={{ width: column.width, verticalAlign: 'middle', wordBreak: 'break-word' }}
+          align="center"
+          sx={{
+            whiteSpace: 'normal',
+            wordBreak: 'keep-all',
+            overflowWrap: 'break-word',
+            padding: '8px',
+            minWidth: '100px',
+          }}
         >
           {row[column.dataKey]}
         </TableCell>
-      ))}
-    </>
-  );
+      );
+    })}
+  </>
+);
 
   return (
     <Box
       sx={{
-        height: '90vh',
-        width: '90vw',
+        width: '100%',
+        maxWidth: '1600px',
+        height: '100vh',
         margin: 'auto',
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'center',
         alignItems: 'center',
-        gap: 2,
-        pt: 2,
+        p: 2,
+        boxSizing: 'border-box',
       }}
     >
       <Box sx={{ width: '100%', display: 'flex', justifyContent: 'flex-start', mb: 1 }}>
@@ -114,10 +157,10 @@ export default function DataTable() {
           size="small"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          sx={{ width: '25%' }}
+          sx={{ width: '100%', maxWidth: '300px' }}
         />
       </Box>
-      <Paper sx={{ height: '80%', width: '100%' }}>
+      <Paper sx={{ flex: 1, width: '100%' }}>
         <TableVirtuoso
           data={filteredRows}
           components={VirtuosoTableComponents}
