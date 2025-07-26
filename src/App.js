@@ -39,6 +39,7 @@ export default function DataTable() {
   const [errorMessages, setErrorMessages] = useState([]);
 
   useEffect(() => {
+    document.title = 'Estimate Login Time';
     async function fetchData() {
       try {
         const res = await fetch('https://login-estimate-time-edb70ab12340.herokuapp.com/');
