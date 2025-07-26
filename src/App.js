@@ -19,15 +19,17 @@ import {
 import { TableVirtuoso } from 'react-virtuoso';
 import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
+import Tooltip from '@mui/material/Tooltip';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 
 const columns = [
   { label: 'ID', dataKey: 'id' },
   { label: 'Name', dataKey: 'name' },
-  { label: 'Tahmini Aralık', dataKey: 'result1' },
-  { label: 'Tahmini Saat Dilimi', dataKey: 'result2' },
-  { label: 'Tahmini Gün', dataKey: 'result3' },
-  { label: 'Gelecek Tahmini Giriş', dataKey: 'result4' },
-  { label: 'Yeterli Veri Var?', dataKey: 'dataSufficiency' },
+  { label: 'Tahmini Aralık', dataKey: 'result1' , tooltip: 'Olası Giriş Aralığını Verir.'},
+  { label: 'Gelecek Tahmini Giriş', dataKey: 'result2' },
+  { label: 'Gelecek Tahmini Giriş(Prophet)', dataKey: 'result3', tooltip: 'Küçük Veri Paketleriyle Bile Güvenilir Sonuçlar Verir.'  },
+  { label: 'Gelecek Tahmini Giriş(Neural Prophet)', dataKey: 'result4', tooltip: 'Yeterli Veri Yoksa Güvenilir Değildir. Yeteri Kadar Veri Olmadığında ERROR_18 Olarak Geri Dönüş Yapar.' },
+  { label: 'Yeterli Veri Var?', dataKey: 'dataSufficiency', tooltip: 'Veri Sayısı 50\'den Az İse Sonuçlar Güvenilir Değildir. '  },
 ];
 
 export default function DataTable() {
@@ -98,26 +100,32 @@ export default function DataTable() {
     TableBody: React.forwardRef((props, ref) => <TableBody ref={ref} {...props} />),
   };
 
-  const fixedHeaderContent = () => (
-    <TableRow>
-      {columns.map((column) => (
-        <TableCell
-          key={column.dataKey}
-          variant="head"
-          align="center"
-          sx={{
-            backgroundColor: 'background.paper',
-            whiteSpace: 'normal',
-            wordBreak: 'break-word',
-            padding: '8px',
-          }}
-        >
-          {column.label}
-        </TableCell>
-      ))}
-    </TableRow>
-  );
-
+const fixedHeaderContent = () => (
+  <TableRow>
+    {columns.map((column) => (
+      <TableCell
+        key={column.dataKey}
+        variant="head"
+        align="center"
+        sx={{
+          backgroundColor: 'background.paper',
+          whiteSpace: 'normal',
+          wordBreak: 'break-word',
+          padding: '8px',
+        }}
+      >
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.5 }}>
+          <span>{column.label}</span>
+          {column.tooltip && (
+            <Tooltip title={column.tooltip}>
+              <InfoOutlinedIcon fontSize="small" color="action" sx={{ cursor: 'pointer' }} />
+            </Tooltip>
+          )}
+        </Box>
+      </TableCell>
+    ))}
+  </TableRow>
+);
   const rowContent = (_index, row) => (
     <>
       {columns.map((column) => {
